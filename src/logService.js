@@ -117,7 +117,7 @@ function addEntry(date, foodId, grams) {
     throw err;
   }
 
-  const macros = foodService.nutritionForPortion(food, g);
+  const macros = foodService.nutritionForPortion(food.id, g);
   const entry = {
     id: crypto.randomUUID(),
     date,
