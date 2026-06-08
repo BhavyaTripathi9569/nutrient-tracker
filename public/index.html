@@ -3,216 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NutriTrack</title>
+  <title>NutriTrack — Daily Nutrient Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- ============================ HEADER ============================ -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand__mark" aria-hidden="true"></span>
+      <h1 class="brand__name">NutriTrack</h1>
+    </div>
 
-  <!-- ── Header ─────────────────────────────────────────── -->
-  <header class="app-header">
-    <div class="header-inner">
-      <div class="logo">
-        <svg class="logo-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <circle cx="16" cy="16" r="15" fill="#16A34A" opacity=".12"/>
-          <path d="M16 7c-3.9 0-7 3.1-7 7 0 2.8 1.6 5.2 4 6.3V25a1 1 0 002 0v-1h2v1a1 1 0 002 0v-4.7c2.4-1.1 4-3.5 4-6.3 0-3.9-3.1-7-7-7z" fill="#16A34A"/>
-          <path d="M13 14a1 1 0 011-1h4a1 1 0 010 2h-4a1 1 0 01-1-1z" fill="#fff"/>
-        </svg>
-        <span class="logo-text">NutriTrack</span>
-      </div>
-
-      <nav class="date-nav" aria-label="Date navigation">
-        <button id="prev-day"  class="nav-btn" aria-label="Previous day">
-          <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-        </button>
-        <button id="today-btn" class="today-btn">Today</button>
-        <span   id="date-display" class="date-display" aria-live="polite"></span>
-        <button id="next-day"  class="nav-btn" aria-label="Next day">
-          <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
-        </button>
+    <div class="topbar__right">
+      <!-- Date navigator: lets the user view any day's log -->
+      <nav class="datenav" aria-label="Select day">
+        <button id="prevDay" class="datenav__btn" aria-label="Previous day">&#8249;</button>
+        <div class="datenav__label">
+          <span id="dateLabel">Today</span>
+          <input type="date" id="datePicker" class="datenav__picker" aria-label="Pick a date" />
+        </div>
+        <button id="nextDay" class="datenav__btn" aria-label="Next day">&#8250;</button>
       </nav>
+
+      <!-- Light / dark theme toggle -->
+      <button id="themeToggle" class="theme-toggle" aria-label="Switch to dark mode">&#9790;</button>
     </div>
   </header>
 
-  <!-- ── Main ───────────────────────────────────────────── -->
-  <main class="app-main">
-
-    <!-- Dashboard panel -->
-    <section class="panel dashboard-panel" aria-label="Daily dashboard">
+  <main class="layout">
+    <!-- ===================== LEFT: DASHBOARD ===================== -->
+    <section class="panel dashboard" aria-labelledby="dashTitle">
+      <h2 id="dashTitle" class="panel__title">Today at a glance</h2>
 
       <!-- Calorie ring -->
-      <div class="ring-section">
-        <div class="ring-wrapper" role="img" aria-labelledby="ring-label">
-          <svg class="calorie-ring" viewBox="0 0 200 200" aria-hidden="true">
-            <defs>
-              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%"   stop-color="#4ADE80"/>
-                <stop offset="100%" stop-color="#16A34A"/>
-              </linearGradient>
-            </defs>
-            <circle class="ring-track" cx="100" cy="100" r="80"/>
-            <circle class="ring-fill"  cx="100" cy="100" r="80" id="ring-fill"/>
-          </svg>
-          <div class="ring-center">
-            <span id="ring-consumed"  class="ring-consumed">0</span>
-            <span class="ring-unit">kcal</span>
-            <span id="ring-goal-label" class="ring-goal">of 2000</span>
-          </div>
-        </div>
-        <p id="ring-label" class="sr-only">Calorie progress ring</p>
-      </div>
-
-      <!-- Macro bars -->
-      <div class="macros-section">
-        <div class="macro-row">
-          <div class="macro-label">
-            <span class="macro-dot protein"></span>
-            <span class="macro-name">Protein</span>
-          </div>
-          <div class="macro-bar-track">
-            <div id="protein-bar" class="macro-bar protein" style="width:0%"></div>
-          </div>
-          <span id="protein-val" class="macro-amount">0 / 120g</span>
-        </div>
-        <div class="macro-row">
-          <div class="macro-label">
-            <span class="macro-dot carbs"></span>
-            <span class="macro-name">Carbs</span>
-          </div>
-          <div class="macro-bar-track">
-            <div id="carbs-bar" class="macro-bar carbs" style="width:0%"></div>
-          </div>
-          <span id="carbs-val" class="macro-amount">0 / 250g</span>
-        </div>
-        <div class="macro-row">
-          <div class="macro-label">
-            <span class="macro-dot fat"></span>
-            <span class="macro-name">Fat</span>
-          </div>
-          <div class="macro-bar-track">
-            <div id="fat-bar" class="macro-bar fat" style="width:0%"></div>
-          </div>
-          <span id="fat-val" class="macro-amount">0 / 65g</span>
+      <div class="calorie">
+        <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="ring__track" cx="60" cy="60" r="52" />
+          <circle class="ring__fill" id="calorieRing" cx="60" cy="60" r="52" />
+        </svg>
+        <div class="calorie__center">
+          <span class="calorie__value" id="kcalConsumed">0</span>
+          <span class="calorie__goal">of <b id="kcalGoal">2000</b> kcal</span>
+          <span class="calorie__remaining" id="kcalRemaining">2000 left</span>
         </div>
       </div>
 
-      <!-- Goals editor -->
-      <details class="goals-details" id="goals-details">
-        <summary class="goals-summary">
-          <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true">
-            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-          </svg>
-          Edit Daily Goals
-          <svg class="summary-chevron" viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true">
-            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-          </svg>
-        </summary>
-        <form id="goals-form" class="goals-form">
-          <div class="goals-grid">
-            <label class="goal-field">
-              <span class="goal-field-label">Calories (kcal)</span>
-              <input type="number" id="goal-kcal" min="1" step="1" class="goal-input" />
-            </label>
-            <label class="goal-field">
-              <span class="goal-field-label">Protein (g)</span>
-              <input type="number" id="goal-protein" min="1" step="1" class="goal-input" />
-            </label>
-            <label class="goal-field">
-              <span class="goal-field-label">Carbs (g)</span>
-              <input type="number" id="goal-carbs" min="1" step="1" class="goal-input" />
-            </label>
-            <label class="goal-field">
-              <span class="goal-field-label">Fat (g)</span>
-              <input type="number" id="goal-fat" min="1" step="1" class="goal-input" />
-            </label>
+      <!-- Goal-completion summary -->
+      <div class="goalmeter" id="goalMeter">
+        <span class="goalmeter__pct" id="goalPct">0%</span>
+        <span class="goalmeter__text">of your daily calorie goal</span>
+      </div>
+
+      <!-- Macro progress bars -->
+      <div class="macros" id="macros">
+        <div class="macro" data-macro="protein">
+          <div class="macro__head">
+            <span class="macro__label">Protein</span>
+            <span class="macro__nums"><b id="proteinVal">0</b> / <span id="proteinGoal">120</span> g</span>
           </div>
-          <button type="submit" class="btn-primary goals-save-btn">Save Goals</button>
-        </form>
+          <div class="bar"><span class="bar__fill" id="proteinBar"></span></div>
+        </div>
+        <div class="macro" data-macro="carbs">
+          <div class="macro__head">
+            <span class="macro__label">Carbs</span>
+            <span class="macro__nums"><b id="carbsVal">0</b> / <span id="carbsGoal">250</span> g</span>
+          </div>
+          <div class="bar"><span class="bar__fill" id="carbsBar"></span></div>
+        </div>
+        <div class="macro" data-macro="fat">
+          <div class="macro__head">
+            <span class="macro__label">Fat</span>
+            <span class="macro__nums"><b id="fatVal">0</b> / <span id="fatGoal">65</span> g</span>
+          </div>
+          <div class="bar"><span class="bar__fill" id="fatBar"></span></div>
+        </div>
+      </div>
+
+      <!-- Weekly calorie trend (last 7 days) -->
+      <div class="trend">
+        <h3 class="trend__title">Last 7 days</h3>
+        <svg class="trend__chart" id="weekChart" viewBox="0 0 320 150" role="img"
+             aria-label="Bar chart of calories consumed over the last seven days"></svg>
+      </div>
+
+      <!-- Goal editor -->
+      <details class="goals">
+        <summary>Adjust daily goals</summary>
+        <div class="goals__grid">
+          <label>Calories <input type="number" id="goalKcal" min="0" /></label>
+          <label>Protein (g) <input type="number" id="goalProtein" min="0" /></label>
+          <label>Carbs (g) <input type="number" id="goalCarbs" min="0" /></label>
+          <label>Fat (g) <input type="number" id="goalFat" min="0" /></label>
+        </div>
+        <button id="saveGoals" class="btn btn--ghost">Save goals</button>
       </details>
+    </section>
 
-    </section><!-- /dashboard-panel -->
+    <!-- ================ RIGHT: SEARCH + LOG ================ -->
+    <section class="panel logger" aria-labelledby="logTitle">
+      <h2 id="logTitle" class="panel__title">Add food</h2>
 
-    <!-- Logger panel -->
-    <section class="panel logger-panel" aria-label="Food logger">
-
-      <!-- Search -->
-      <div class="search-section">
-        <div class="search-box">
-          <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor" width="18" height="18" aria-hidden="true">
-            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-          </svg>
-          <input
-            type="search"
-            id="search-input"
-            class="search-input"
-            placeholder="Search foods to add…"
-            autocomplete="off"
-            aria-label="Search foods"
-            aria-autocomplete="list"
-            aria-controls="search-results"
-          />
-          <button id="clear-search" class="clear-btn" hidden aria-label="Clear search">&times;</button>
-        </div>
-        <ul id="search-results" class="search-results" hidden role="listbox" aria-label="Search results"></ul>
+      <!-- Dynamic feature 1: live food search backed by the server -->
+      <div class="search">
+        <input
+          type="search"
+          id="searchInput"
+          class="search__input"
+          placeholder="Search foods… e.g. chicken, oats, banana"
+          autocomplete="off"
+        />
+        <ul class="results" id="results" role="listbox" aria-label="Search results"></ul>
       </div>
 
-      <!-- Entries -->
-      <div class="entries-section">
-        <h2 class="section-heading">
-          <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18" aria-hidden="true">
-            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
-          </svg>
-          Today's Log
-        </h2>
-        <div id="entries-list" class="entries-list" aria-live="polite">
-          <div class="empty-state">
-            <svg viewBox="0 0 48 48" fill="none" width="48" height="48" aria-hidden="true">
-              <circle cx="24" cy="24" r="22" stroke="#D1FAE5" stroke-width="2"/>
-              <path d="M16 24h16M24 16v16" stroke="#6EE7B7" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
-            <p>No entries yet.<br/>Search for a food above to get started.</p>
-          </div>
-        </div>
-      </div>
-
-    </section><!-- /logger-panel -->
+      <!-- Today's log -->
+      <h3 class="logger__subtitle">Logged today</h3>
+      <ul class="entries" id="entries" aria-live="polite"></ul>
+      <p class="empty" id="emptyState">Nothing logged yet. Search above to add your first food.</p>
+    </section>
   </main>
 
-  <!-- ── Portion modal ───────────────────────────────────── -->
-  <div id="modal-overlay" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal">
-      <button id="modal-close" class="modal-close-btn" aria-label="Close modal">&times;</button>
-
-      <div class="modal-header">
-        <h3 id="modal-title"  class="modal-food-name"></h3>
-        <span id="modal-category" class="category-badge"></span>
-      </div>
-
-      <label class="portion-label" for="modal-grams">Portion size</label>
-      <div class="portion-input-wrap">
-        <input
-          type="number"
-          id="modal-grams"
-          class="portion-input"
-          min="1"
-          step="1"
-          value="100"
-          aria-label="Portion in grams"
-        />
-        <span class="portion-unit">grams</span>
-      </div>
-
-      <div id="modal-preview" class="modal-preview" aria-live="polite"></div>
-
-      <div class="modal-actions">
-        <button id="modal-cancel"  class="btn-secondary">Cancel</button>
-        <button id="modal-confirm" class="btn-primary">Add to Log</button>
+  <!-- Add-portion modal -->
+  <div class="modal" id="portionModal" hidden>
+    <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="modalFood">
+      <h3 class="modal__food" id="modalFood">Food name</h3>
+      <p class="modal__hint" id="modalHint">Values shown per 100 g</p>
+      <label class="modal__label">
+        Portion (grams)
+        <input type="number" id="portionInput" value="100" min="1" />
+      </label>
+      <div class="modal__preview" id="modalPreview"></div>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" id="cancelPortion">Cancel</button>
+        <button class="btn btn--primary" id="confirmPortion">Add to log</button>
       </div>
     </div>
   </div>
 
-  <!-- ── Toast ───────────────────────────────────────────── -->
-  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <div class="toast" id="toast" hidden></div>
 
   <script src="app.js"></script>
 </body>

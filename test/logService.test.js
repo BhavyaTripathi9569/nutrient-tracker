@@ -1,125 +1,108 @@
 'use strict';
 
-const { describe, it, before, after } = require('node:test');
-const assert = require('node:assert/strict');
-const fs   = require('fs');
-const os   = require('os');
-const path = require('path');
+/**
+ * logService.test.js
+ * Integration tests for the daily-log logic. Each run uses a throwaway
+ * store file (set via NUTRITRACK_STORE) so tests never touch real data.
+ *
+ * Run with: npm test
+ */
 
-const store      = require('../src/store');
+const test = require('node:test');
+const assert = require('node:assert');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+
+// Point the store at a temp file BEFORE requiring the modules that read it.
+const tmpStore = path.join(os.tmpdir(), `nutritrack-test-${process.pid}.json`);
+process.env.NUTRITRACK_STORE = tmpStore;
+
 const logService = require('../src/logService');
 
-/* ── Test store isolation ────────────────────────────────── */
-const tmpPath = path.join(os.tmpdir(), `nutritrack_test_${Date.now()}.json`);
+const DATE = '2026-06-01';
 
-before(() => {
-  store.setStorePath(tmpPath);
+test.beforeEach(() => {
+  // Reset to a clean store before each test.
+  fs.writeFileSync(
+    tmpStore,
+    JSON.stringify({ goals: { kcal: 2000, protein: 120, carbs: 250, fat: 65 }, entries: [] })
+  );
 });
 
-after(() => {
-  store.resetStorePath();
-  try { fs.unlinkSync(tmpPath); } catch { /* already gone */ }
+test.after(() => {
+  if (fs.existsSync(tmpStore)) fs.unlinkSync(tmpStore);
 });
 
-function freshStore() {
-  fs.writeFileSync(tmpPath, JSON.stringify(
-    { goals: { kcal: 2000, protein: 120, carbs: 250, fat: 65 }, entries: [] },
-    null, 2
-  ));
-}
-
-/* ── addEntry ────────────────────────────────────────────── */
-
-describe('addEntry', () => {
-
-  it('creates an entry with correctly scaled nutrition', () => {
-    freshStore();
-    const entry = logService.addEntry('2026-01-01', 'f001', 200);
-    // f001 Chicken: 165 kcal per 100g → 200g = 330 kcal
-    assert.equal(entry.kcal, 330);
-    assert.equal(entry.foodId, 'f001');
-    assert.equal(entry.grams, 200);
-  });
-
-  it('persists the entry so it appears in getDay', () => {
-    freshStore();
-    logService.addEntry('2026-01-02', 'f004', 150);
-    const day = logService.getDay('2026-01-02');
-    assert.equal(day.entries.length, 1);
-  });
-
-  it('throws for a non-positive gram value', () => {
-    assert.throws(() => logService.addEntry('2026-01-03', 'f001', -10), /positive/i);
-  });
-
-  it('throws for zero grams', () => {
-    assert.throws(() => logService.addEntry('2026-01-03', 'f001', 0), /positive/i);
-  });
-
-  it('throws for an unknown foodId', () => {
-    assert.throws(() => logService.addEntry('2026-01-03', 'no_such_food', 100), /not found/i);
-  });
-
+test('getWeek returns 7 consecutive days ending on the given date', () => {
+  const week = logService.getWeek(DATE);
+  assert.strictEqual(week.days.length, 7);
+  assert.strictEqual(week.days[6].date, DATE); // last day is the end date
+  assert.strictEqual(week.days[0].date, '2026-05-26'); // six days earlier
+  assert.strictEqual(week.goal, 2000);
 });
 
-/* ── removeEntry ─────────────────────────────────────────── */
-
-describe('removeEntry', () => {
-
-  it('removes an existing entry by id', () => {
-    freshStore();
-    const entry = logService.addEntry('2026-02-01', 'f011', 180);
-    logService.removeEntry(entry.id);
-    const day = logService.getDay('2026-02-01');
-    assert.equal(day.entries.length, 0);
-  });
-
-  it('throws when removing a non-existent entry', () => {
-    assert.throws(() => logService.removeEntry('e_does_not_exist'), /not found/i);
-  });
-
+test('getWeek sums calories onto the correct day only', () => {
+  logService.addEntry(DATE, 'f001', 200); // 200g chicken -> 330 kcal on the end date
+  const week = logService.getWeek(DATE);
+  assert.strictEqual(Math.round(week.days[6].kcal), 330); // today has the calories
+  assert.strictEqual(week.days[5].kcal, 0); // yesterday stays empty
 });
 
-/* ── getDay & sumTotals ──────────────────────────────────── */
-
-describe('getDay / sumTotals', () => {
-
-  it('sums totals correctly for multiple entries', () => {
-    freshStore();
-    // f001 Chicken: 165 kcal/100g, f004 Tuna: 116 kcal/100g
-    logService.addEntry('2026-03-01', 'f001', 100); // 165 kcal
-    logService.addEntry('2026-03-01', 'f004', 100); // 116 kcal
-    const day = logService.getDay('2026-03-01');
-    assert.equal(day.totals.kcal, 281);
-    assert.equal(day.entries.length, 2);
-  });
-
-  it('returns only entries for the requested date', () => {
-    freshStore();
-    logService.addEntry('2026-03-02', 'f001', 100);
-    logService.addEntry('2026-03-03', 'f001', 100);
-    const day = logService.getDay('2026-03-02');
-    assert.equal(day.entries.length, 1);
-  });
-
+test('a fresh day has zero totals and full remaining', () => {
+  const day = logService.getDay(DATE);
+  assert.strictEqual(day.totals.kcal, 0);
+  assert.strictEqual(day.remaining.kcal, 2000);
+  assert.strictEqual(day.entries.length, 0);
 });
 
-/* ── goals ───────────────────────────────────────────────── */
+test('addEntry stores a portion and updates totals & progress', () => {
+  const day = logService.addEntry(DATE, 'f001', 200); // 200g chicken = 330 kcal, 62g protein
+  assert.strictEqual(day.totals.kcal, 330);
+  assert.strictEqual(day.totals.protein, 62);
+  assert.strictEqual(day.entries.length, 1);
+  assert.strictEqual(day.remaining.kcal, 1670);
+  // 330 / 2000 = 16.5% -> rounds to 17
+  assert.strictEqual(day.progress.kcal, 17);
+});
 
-describe('setGoals', () => {
+test('addEntry rejects an unknown food', () => {
+  assert.throws(() => logService.addEntry(DATE, 'nope', 100), /Unknown food/);
+});
 
-  it('saves and returns updated goals', () => {
-    freshStore();
-    const goals = logService.setGoals({ kcal: 2500, protein: 150, carbs: 300, fat: 70 });
-    assert.equal(goals.kcal, 2500);
-    assert.equal(goals.protein, 150);
-  });
+test('addEntry rejects a non-positive portion', () => {
+  assert.throws(() => logService.addEntry(DATE, 'f001', 0), /positive/);
+  assert.throws(() => logService.addEntry(DATE, 'f001', -50), /positive/);
+});
 
-  it('throws when a goal value is not a positive number', () => {
-    assert.throws(
-      () => logService.setGoals({ kcal: -100, protein: 150, carbs: 300, fat: 70 }),
-      /positive/i
-    );
-  });
+test('progress is capped at 100% even when goals are exceeded', () => {
+  logService.setGoals({ kcal: 100 });
+  const day = logService.addEntry(DATE, 'f001', 200); // 330 kcal vs 100 goal
+  assert.strictEqual(day.progress.kcal, 100);
+  assert.ok(day.remaining.kcal < 0, 'remaining should go negative when over goal');
+});
 
+test('removeEntry deletes the entry and recomputes totals', () => {
+  let day = logService.addEntry(DATE, 'f001', 200);
+  const entryId = day.entries[0].id;
+  day = logService.removeEntry(entryId);
+  assert.strictEqual(day.entries.length, 0);
+  assert.strictEqual(day.totals.kcal, 0);
+});
+
+test('removeEntry throws 404 for a missing entry', () => {
+  assert.throws(() => logService.removeEntry('missing-id'), /not found/);
+});
+
+test('entries are isolated per day', () => {
+  logService.addEntry('2026-06-01', 'f001', 100);
+  const otherDay = logService.getDay('2026-06-02');
+  assert.strictEqual(otherDay.entries.length, 0);
+});
+
+test('setGoals only accepts valid positive numbers', () => {
+  const goals = logService.setGoals({ kcal: 2500, protein: -10, fat: 'abc' });
+  assert.strictEqual(goals.kcal, 2500); // accepted
+  assert.strictEqual(goals.protein, 120); // rejected (negative) -> unchanged
+  assert.strictEqual(goals.fat, 65); // rejected (NaN) -> unchanged
 });

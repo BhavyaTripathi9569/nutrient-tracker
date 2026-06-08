@@ -1,4 +1,43 @@
 {
-  "goals": { "kcal": 2000, "protein": 120, "carbs": 250, "fat": 65 },
-  "entries": []
+  "goals": {
+    "kcal": 2000,
+    "protein": 120,
+    "carbs": 250,
+    "fat": 65
+  },
+  "entries": [
+    {
+      "id": "e_ephhtn",
+      "date": "2026-06-08",
+      "foodId": "f008",
+      "foodName": "Tofu, firm",
+      "grams": 100,
+      "kcal": 76,
+      "protein": 8,
+      "carbs": 1.9,
+      "fat": 4.2
+    },
+    {
+      "id": "e_eg0bte",
+      "date": "2026-06-08",
+      "foodId": "f033",
+      "foodName": "Broccoli, raw",
+      "grams": 100,
+      "kcal": 34,
+      "protein": 2.8,
+      "carbs": 6.6,
+      "fat": 0.4
+    },
+    {
+      "id": "e_l0uz8u",
+      "date": "2026-06-08",
+      "foodId": "f012",
+      "foodName": "Brown rice, cooked",
+      "grams": 100,
+      "kcal": 111,
+      "protein": 2.6,
+      "carbs": 23,
+      "fat": 0.9
+    }
+  ]
 }
