@@ -3,6 +3,10 @@
 const path  = require('path');
 const foods = require(path.join(__dirname, '..', 'data', 'foods.json'));
 
+function round1(n) {
+  return Math.round(n * 10) / 10;
+}
+
 function searchFoods(query) {
   if (!query || !query.trim()) return [];
   const q = query.trim().toLowerCase();
@@ -30,4 +34,4 @@ function nutritionForPortion(foodId, grams) {
   };
 }
 
-module.exports = { searchFoods, getFoodById, nutritionForPortion };
+module.exports = { round1, searchFoods, getFoodById, nutritionForPortion };

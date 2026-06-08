@@ -38,6 +38,28 @@
       "protein": 2.6,
       "carbs": 23,
       "fat": 0.9
+    },
+    {
+      "id": "27b484dc-9c1e-4a70-b738-d8f7b8c1768d",
+      "date": "2026-06-08",
+      "foodId": "f001",
+      "name": "Chicken breast, grilled",
+      "grams": 100,
+      "kcal": 165,
+      "protein": 31,
+      "carbs": 0,
+      "fat": 3.6
+    },
+    {
+      "id": "2544c15c-6c70-4247-b31e-d16f76f4dae7",
+      "date": "2026-06-08",
+      "foodId": "f001",
+      "name": "Chicken breast, grilled",
+      "grams": 100,
+      "kcal": 165,
+      "protein": 31,
+      "carbs": 0,
+      "fat": 3.6
     }
   ]
 }
